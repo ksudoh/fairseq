@@ -116,7 +116,7 @@ def process(args):
 
         # Extract features
         with TemporaryDirectory() as tmpdir:
-            feature_root = Path(tmpdir.name).absolute() / "fbank80"
+            feature_root = Path(tmpdir).absolute() / "fbank80"
             feature_root.mkdir(exist_ok=True)
             for split in MUSTC.SPLITS:
                 print(f"Fetching split {split}...")
