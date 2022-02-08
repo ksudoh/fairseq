@@ -104,7 +104,7 @@ class MUSTC(Dataset):
 
 def process(args):
     root = Path(args.data_root).absolute()
-    for lang in MUSTC.LANGUAGES:
+    for lang in set(args.lang):
         cur_root = root / f"en-{lang}"
         if not cur_root.is_dir():
             print(f"{cur_root.as_posix()} does not exist. Skipped.")
@@ -214,46 +214,6 @@ def process(args):
                     else None
                 ),
             )
-
-
-def process_joint(args):
-    cur_root = Path(args.data_root)
-    assert all((cur_root / f"en-{lang}").is_dir() for lang in MUSTC.LANGUAGES), \
-        "do not have downloaded data available for all 8 languages"
-    # Generate vocab
-    vocab_size_str = "" if args.vocab_type == "char" else str(args.vocab_size)
-    spm_filename_prefix = f"spm_{args.vocab_type}{vocab_size_str}_{args.task}"
-    with NamedTemporaryFile(mode="w") as f:
-        for lang in MUSTC.LANGUAGES:
-            tsv_path = cur_root / f"en-{lang}" / f"train_{args.task}.tsv"
-            df = load_df_from_tsv(tsv_path)
-            for t in df["tgt_text"]:
-                f.write(t + "\n")
-        special_symbols = None
-        if args.task == 'st':
-            special_symbols = [f'<lang:{lang}>' for lang in MUSTC.LANGUAGES]
-        gen_vocab(
-            Path(f.name),
-            cur_root / spm_filename_prefix,
-            args.vocab_type,
-            args.vocab_size,
-            special_symbols=special_symbols
-        )
-    # Generate config YAML
-    gen_config_yaml(
-        cur_root,
-        spm_filename_prefix + ".model",
-        yaml_filename=f"config_{args.task}.yaml",
-        specaugment_policy="ld",
-        prepend_tgt_lang_tag=(args.task == "st"),
-    )
-    # Make symbolic links to manifests
-    for lang in MUSTC.LANGUAGES:
-        for split in MUSTC.SPLITS:
-            src_path = cur_root / f"en-{lang}" / f"{split}_{args.task}.tsv"
-            desc_path = cur_root / f"{split}_{lang}_{args.task}.tsv"
-            if not desc_path.is_symlink():
-                os.symlink(src_path, desc_path)
 
 
 def main():
