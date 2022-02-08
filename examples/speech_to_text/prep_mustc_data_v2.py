@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 import shutil
 from itertools import groupby
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Tuple
 
 import numpy as np
