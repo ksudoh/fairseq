@@ -260,7 +260,6 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-root", "-d", required=True, type=str)
     parser.add_argument("--output", default=None, type=str)
-    parser.add_argument("--output", type=str)
     parser.add_argument(
         "--vocab-type",
         default="unigram",
