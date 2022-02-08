@@ -115,41 +115,42 @@ def process(args):
             output_root = Path(args.output).absolute() / f"en-{lang}"
 
         # Extract features
-        feature_root = output_root / "fbank80"
-        feature_root.mkdir(exist_ok=True)
-        for split in MUSTC.SPLITS:
-            print(f"Fetching split {split}...")
-            dataset = MUSTC(root.as_posix(), lang, split)
-            print("Extracting log mel filter bank features...")
-            if split == 'train' and args.cmvn_type == "global":
-                print("And estimating cepstral mean and variance stats...")
-                gcmvn_feature_list = []
+        with TemporaryDirectory(mode="w") as tmpdir:
+            feature_root = Path(tmpdir.name).absolute() / "fbank80"
+            feature_root.mkdir(exist_ok=True)
+            for split in MUSTC.SPLITS:
+                print(f"Fetching split {split}...")
+                dataset = MUSTC(root.as_posix(), lang, split)
+                print("Extracting log mel filter bank features...")
+                if split == 'train' and args.cmvn_type == "global":
+                    print("And estimating cepstral mean and variance stats...")
+                    gcmvn_feature_list = []
 
-            for waveform, sample_rate, _, _, _, utt_id in tqdm(dataset):
-                features = extract_fbank_features(waveform, sample_rate)
+                for waveform, sample_rate, _, _, _, utt_id in tqdm(dataset):
+                    features = extract_fbank_features(waveform, sample_rate)
 
-                np.save(
-                    (feature_root / f"{utt_id}.npy").as_posix(),
-                    features
-                )
+                    np.save(
+                        (feature_root / f"{utt_id}.npy").as_posix(),
+                        features
+                    )
+
+                    if split == 'train' and args.cmvn_type == "global":
+                        if len(gcmvn_feature_list) < args.gcmvn_max_num:
+                            gcmvn_feature_list.append(features)
 
                 if split == 'train' and args.cmvn_type == "global":
-                    if len(gcmvn_feature_list) < args.gcmvn_max_num:
-                        gcmvn_feature_list.append(features)
+                    # Estimate and save cmv
+                    stats = cal_gcmvn_stats(gcmvn_feature_list)
+                    with open(output_root / "gcmvn.npz", "wb") as f:
+                        np.savez(f, mean=stats["mean"], std=stats["std"])
 
-            if split == 'train' and args.cmvn_type == "global":
-                # Estimate and save cmv
-                stats = cal_gcmvn_stats(gcmvn_feature_list)
-                with open(output_root / "gcmvn.npz", "wb") as f:
-                    np.savez(f, mean=stats["mean"], std=stats["std"])
+            # Pack features into ZIP
+            zip_path = output_root / "fbank80.zip"
+            print("ZIPing features...")
+            create_zip(feature_root, zip_path)
 
-        # Pack features into ZIP
-        zip_path = output_root / "fbank80.zip"
-        print("ZIPing features...")
-        create_zip(feature_root, zip_path)
-
-        # Clean up
-        shutil.rmtree(feature_root)
+            ## Clean up
+            #shutil.rmtree(feature_root)
 
         print("Fetching ZIP manifest...")
         zip_manifest = get_zip_manifest(zip_path)
