@@ -177,7 +177,7 @@ def process(args):
                 train_text_st.extend(tgt_utts)
 
             for task in set(args.task):
-                manifest["tgt_text"] = src_uts if task == "asr" else tgt_utts
+                manifest["tgt_text"] = src_utts if task == "asr" else tgt_utts
                 df = pd.DataFrame.from_dict(manifest)
                 df = filter_manifest_df(df, is_train_split=is_train_split)
                 save_df_to_tsv(df, cur_root / f"{split}_{task}.tsv")
