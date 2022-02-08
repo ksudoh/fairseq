@@ -269,7 +269,7 @@ def main():
     ),
     parser.add_argument("--vocab-size", default=8000, type=int)
     parser.add_argument("--vocab-size-asr", default=0, type=int)
-    parser.add_argument("--vocab-size-mt", default=0, type=int)
+    parser.add_argument("--vocab-size-st", default=0, type=int)
     parser.add_argument("--task", type=str, choices=["asr", "st"], nargs="+")
     parser.add_argument("--lang", type=str, choices=MUSTC.LANGUAGES, nargs="+")
     parser.add_argument("--cmvn-type", default="utterance",
