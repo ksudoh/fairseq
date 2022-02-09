@@ -182,7 +182,7 @@ def process(args):
                 manifest["tgt_text"] = src_utts if task == "asr" else tgt_utts
                 df = pd.DataFrame.from_dict(manifest)
                 df = filter_manifest_df(df, is_train_split=is_train_split)
-                save_df_to_tsv(df, cur_root / f"{split}_{task}.tsv")
+                save_df_to_tsv(df, output_root / f"{split}_{task}.tsv")
 
         for task in set(args.task):
             # Generate vocab
