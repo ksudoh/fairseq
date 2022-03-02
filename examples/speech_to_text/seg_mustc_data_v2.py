@@ -8,6 +8,7 @@ import argparse
 import logging
 from pathlib import Path
 import soundfile as sf
+from unicodedata import normalize
 from examples.speech_to_text.prep_mustc_data_v2 import (
     MUSTC
 )
@@ -38,7 +39,7 @@ def main(args):
             waveform.squeeze(0).numpy(),
             samplerate=int(sample_rate)
         )
-        f_text.write(text + "\n")
+        f_text.write(normalize("NFKC", text) + "\n")
         f_wav_list.write(str(output / f"{utt_id}.wav") + "\n")
 
 

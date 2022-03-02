@@ -203,7 +203,7 @@ class S2TTransformerModel(FairseqEncoderDecoderModel):
         )
         parser.add_argument(
             '--encoder-freezing-updates',
-            default=None,
+            default=0,
             type=int,
             metavar='N',
             help='freeze encoder for first N updates'
